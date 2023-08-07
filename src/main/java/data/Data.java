@@ -16,37 +16,36 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import com.binance.connector.client.SpotClient;
 import com.binance.connector.client.impl.SpotClientImpl;
-
 import struct.DiskMap;
+import struct.DiskList;
 import struct.Struct;
 
-public class Data {
+public class Data{
 
 	private final String HEADER[] = { "open time", "open price", "high price", "low price", "close price", "volume",
 			"close time", "asset volume", "number of trades", "taker buy base asset volume", "taker buy quote volume",
 			"ignore" };
 	private String symbol, interval;
-	private int iterator;
+	private DiskList<Map<String, String>> it;
 
-	public Data() {
-	}
-	
+	public Data() {}
+
 	public Data(String symbol, String interval) {
 		this.symbol = symbol;
 		this.interval = interval;
 	}
 
 	public void donwload(String symbol, String interval, long time, long pause, String[] header) {
-		DiskMap<Long, Map<String, String>> map = new DiskMap<>(Data.class, symbol + "/" + time);
-		startSave(map, symbol, interval, time, pause, header);
+		this.it = new DiskList<>(Data.class, symbol + "/" + time);
+		startSave(it, symbol, interval, time, pause, header);
 	}
 
 	public void donwload(String symbol, String interval, long time, long pause) {
-		DiskMap<Long, Map<String, String>> map = new DiskMap<>(Data.class, symbol + "/" + time);
-		startSave(map, symbol, interval, time, pause, null);
+		this.it = new DiskList<>(Data.class, symbol + "/" + time);
+		startSave(it, symbol, interval, time, pause, null);
 	}
 
-	private void startSave(DiskMap<Long, Map<String, String>> map, String pairs, String interval, long time, long pause,
+	private void startSave(DiskList<Map<String, String>> map, String pairs, String interval, long time, long pause,
 			String header[]) {
 		Map<String, Object> parameters = new LinkedHashMap<>();
 
@@ -96,7 +95,7 @@ public class Data {
 				}
 
 				System.out.println();
-				map.put(start, finalMap);
+				map.add(finalMap);
 			}
 
 			start += time;
@@ -116,16 +115,15 @@ public class Data {
 		DiskMap<Long, Map<String, String>> map = new DiskMap<>(Data.class, symbol + interval);
 		map.delete();
 	}
-	
 
-	private Long restore(DiskMap<Long, Map<String, String>> map, LocalDateTime startTime, Long finish, Long time) {
+	public DiskList<Map<String, String>> getData() {
+		return this.it;
+	}
 
+	private Long restore(DiskList<Map<String, String>> map, LocalDateTime startTime, Long finish, Long time) {
 		long start = 0L;
-
 		for (long i = startTime.toEpochSecond(null) * 1000; i < finish; i += time) {
-			if (map.get(i) != null) {
-				start = i;
-			}
+			start = i;
 		}
 		return start;
 	}
