@@ -1,7 +1,5 @@
 package data;
 
-import struct.DiskList;
-import struct.DiskMap;
 import utils.JSON;
 import java.util.Map;
 import java.util.List;
@@ -19,28 +17,33 @@ import java.util.LinkedHashMap;
 import com.binance.connector.client.SpotClient;
 import com.binance.connector.client.impl.SpotClientImpl;
 
+import struct.DiskMap;
+import struct.Struct;
+
 public class Data {
 
 	private final String HEADER[] = { "open time", "open price", "high price", "low price", "close price", "volume",
 			"close time", "asset volume", "number of trades", "taker buy base asset volume", "taker buy quote volume",
 			"ignore" };
-	private final String PATH = String.valueOf(Paths.get("").toAbsolutePath().getParent()) + "/diskmap/";
-	private String file;
+	private String symbol, interval;
+	private int iterator;
 
 	public Data() {
 	}
-
-	public void createData(String nameFile, String pairs, String interval, long time, long pause, String[] header) {
-		DiskMap<Long, Map<String, String>> map = new DiskMap<>(nameFile);
-		this.file = PATH + pairs + interval;
-		startSave(map, pairs, interval, time, pause, header);
+	
+	public Data(String symbol, String interval) {
+		this.symbol = symbol;
+		this.interval = interval;
 	}
 
-	public void createData(String nameFile, String pairs, String interval, long time, long pause) {
-		DiskMap<Long, Map<String, String>> map = new DiskMap<>(nameFile);
-		this.file = PATH + pairs + interval;
-		startSave(map, pairs, interval, time, pause, null);
+	public void donwload(String symbol, String interval, long time, long pause, String[] header) {
+		DiskMap<Long, Map<String, String>> map = new DiskMap<>(Data.class, symbol + "/" + time);
+		startSave(map, symbol, interval, time, pause, header);
+	}
 
+	public void donwload(String symbol, String interval, long time, long pause) {
+		DiskMap<Long, Map<String, String>> map = new DiskMap<>(Data.class, symbol + "/" + time);
+		startSave(map, symbol, interval, time, pause, null);
 	}
 
 	private void startSave(DiskMap<Long, Map<String, String>> map, String pairs, String interval, long time, long pause,
@@ -54,14 +57,9 @@ public class Data {
 		parameters.put("symbol", pairs);
 		parameters.put("interval", interval);
 
-		String restoreFiles[] = (new File(file)).list();
-		long start;
-		if (restoreFiles == null || restoreFiles.length == 0)
-			start = startTime.toInstant(ZoneOffset.UTC).toEpochMilli();
-		else
-			start = (long) Double.parseDouble(restoreFiles[restoreFiles.length - 1]);
-
 		long finish = LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli();
+		long start = restore(map, startTime, finish, time);
+
 		parameters.put("startTime", start);
 		parameters.put("endTime", finish);
 		parameters.put("limit", 1000);
@@ -114,9 +112,22 @@ public class Data {
 
 	}
 
-	public void free(String nameFile, String interval) {
-		DiskMap<Long, Map<String, String>> map = new DiskMap<>(nameFile + interval);
+	public void free() {
+		DiskMap<Long, Map<String, String>> map = new DiskMap<>(Data.class, symbol + interval);
 		map.delete();
+	}
+	
+
+	private Long restore(DiskMap<Long, Map<String, String>> map, LocalDateTime startTime, Long finish, Long time) {
+
+		long start = 0L;
+
+		for (long i = startTime.toEpochSecond(null) * 1000; i < finish; i += time) {
+			if (map.get(i) != null) {
+				start = i;
+			}
+		}
+		return start;
 	}
 
 	private void sleep(long time) {

@@ -201,5 +201,10 @@
         	<artifactId>datastruct</artifactId>
         	<version>1.0</version>
         </dependency>
+        <dependency>
+        	<groupId>tradelink</groupId>
+        	<artifactId>diskdata</artifactId>
+        	<version>1.0</version>
+        </dependency>
     </dependencies> 
 </project>
