@@ -20,7 +20,7 @@ import struct.DiskMap;
 import struct.DiskList;
 import struct.Struct;
 
-public class Data{
+public class Data {
 
 	private final String HEADER[] = { "open time", "open price", "high price", "low price", "close price", "volume",
 			"close time", "asset volume", "number of trades", "taker buy base asset volume", "taker buy quote volume",
@@ -28,7 +28,8 @@ public class Data{
 	private String symbol, interval;
 	private DiskList<Map<String, String>> it;
 
-	public Data() {}
+	public Data() {
+	}
 
 	public Data(String symbol, String interval) {
 		this.symbol = symbol;
@@ -121,11 +122,8 @@ public class Data{
 	}
 
 	private Long restore(DiskList<Map<String, String>> map, LocalDateTime startTime, Long finish, Long time) {
-		long start = 0L;
-		for (long i = startTime.toEpochSecond(null) * 1000; i < finish; i += time) {
-			start = i;
-		}
-		return start;
+		int size = map.size();
+		return Long.parseLong(map.get(size).get("kline open time"));
 	}
 
 	private void sleep(long time) {
