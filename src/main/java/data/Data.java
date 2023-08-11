@@ -123,13 +123,16 @@ public class Data {
 
 	private Long restore(DiskList<Map<String, String>> map, LocalDateTime startTime, Long finish, Long time) {
 		int size = map.size();
-		return Long.parseLong(map.get(size).get("kline open time"));
+		if(size == 0)
+			return startTime.toEpochSecond(null) * 1000;
+		else
+			return Long.parseLong(map.get(size).get("kline open time"));
 	}
 
 	private void sleep(long time) {
 		try {
 			Thread.sleep(time);
-		} catch (Exception e) {
-		}
+		} catch (Exception e) {}
 	}
+    }
 }

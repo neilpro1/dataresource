@@ -196,11 +196,7 @@
             <artifactId>bcprov-jdk18on</artifactId>
             <version>1.73</version>
         </dependency>
-        <dependency>
-        	<groupId>tradelink</groupId>
-        	<artifactId>datastruct</artifactId>
-        	<version>1.0</version>
-        </dependency>
+        
         <dependency>
         	<groupId>tradelink</groupId>
         	<artifactId>diskdata</artifactId>
