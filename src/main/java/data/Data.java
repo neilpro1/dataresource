@@ -66,4 +66,12 @@ public class Data {
 	public DiskList<Map<String, String>> getData(String symbol, String interval) {
 		return this.processData.get(symbol + interval).getData();
 	}
+	
+	public boolean isDownload(String symbol, String interval) {
+		return this.processData.get(symbol + interval).isDownload();
+	}
+	
+	public int getSize(String symbol, String interval) {
+		return this.processData.get(symbol + interval).getSize();
+	}
 }

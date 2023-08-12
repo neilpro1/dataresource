@@ -28,10 +28,12 @@ public class ProcessData {
 	private String symbol, interval;
 	private DiskList<Map<String, String>> it;
 	private long pause;
+	private boolean download;
 
 	protected ProcessData(String symbol, String interval) {
 		this.symbol = symbol;
 		this.interval = interval;
+		this.download = false;
 	}
 
 	public void donwload(String symbol, String interval, long time, String[] header, long pause) {
@@ -50,6 +52,10 @@ public class ProcessData {
 		this.pause = time;
 	}
 
+	public int getSize() {
+		return this.it.size();
+	}
+	
 	private void startSave(DiskList<Map<String, String>> map, String pairs, String interval, long time,
 			String header[]) {
 		Map<String, Object> parameters = new LinkedHashMap<>();
@@ -69,6 +75,7 @@ public class ProcessData {
 		parameters.put("limit", 1000);
 
 		boolean loop = true;
+		this.download = true;
 
 		while (loop) {
 
@@ -113,12 +120,18 @@ public class ProcessData {
 
 			this.sleep(this.pause);
 		}
+		
+		this.download = false;
 
 	}
 
 	public void free() {
 		DiskList<Map<String, String>> map = new DiskList<>(Data.class, symbol + interval);
 		map.delete();
+	}
+	
+	public boolean isDownload() {
+		return this.download;
 	}
 
 	public DiskList<Map<String, String>> getData() {
