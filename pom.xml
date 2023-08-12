@@ -202,5 +202,10 @@
         	<artifactId>diskdata</artifactId>
         	<version>1.0</version>
         </dependency>
+        <dependency>
+        	<groupId>collateral</groupId>
+        	<artifactId>collateralserver</artifactId>
+        	<version>1.0</version>
+        </dependency>
     </dependencies> 
 </project>
