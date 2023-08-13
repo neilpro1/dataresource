@@ -49,14 +49,12 @@ public class Data {
 				this.processData.get(key).setPause(this.getPause());
 			}
 
-			this.processData.put(symbol+interval, new ProcessData(symbol, interval));
+			this.processData.put(symbol + interval, new ProcessData(symbol, interval));
 
 			new Thread(() -> {
 				if (header == null) {
-					System.out.println("thread is start");
 					this.processData.get(symbol + interval).donwload(symbol, interval, time, this.getPause());
 				} else {
-					System.out.println("thread is start");
 					this.processData.get(symbol + interval).donwload(symbol, interval, time, header, this.getPause());
 				}
 			}).start();;

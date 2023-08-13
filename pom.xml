@@ -62,16 +62,7 @@
                     <failsOnError>true</failsOnError>
                     <includeTestSourceDirectory>true</includeTestSourceDirectory>
                 </configuration>
-                <executions>
-                    <execution>
-                        <?m2e execute onConfiguration,onIncremental?>
-                        <id>validate</id>
-                        <phase>validate</phase>
-                        <goals>
-                            <goal>checkstyle</goal>
-                        </goals>
-                    </execution>
-                </executions>
+                
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -200,11 +191,6 @@
         <dependency>
         	<groupId>tradelink</groupId>
         	<artifactId>diskdata</artifactId>
-        	<version>1.0</version>
-        </dependency>
-        <dependency>
-        	<groupId>collateral</groupId>
-        	<artifactId>collateralserver</artifactId>
         	<version>1.0</version>
         </dependency>
     </dependencies> 

@@ -34,16 +34,15 @@ public class ProcessData {
 		this.symbol = symbol;
 		this.interval = interval;
 		this.download = false;
+		this.it = new DiskList<>(Data.class, symbol + interval);
 	}
 
 	public void donwload(String symbol, String interval, long time, String[] header, long pause) {
-		this.it = new DiskList<>(Data.class, symbol + interval);
 		this.pause = pause;
 		startSave(it, symbol, interval, time, header);
 	}
 
 	public void donwload(String symbol, String interval, long time, long pause) {
-		this.it = new DiskList<>(Data.class, symbol+interval);
 		this.pause = pause;
 		startSave(it, symbol, interval, time, null);
 	}
@@ -143,10 +142,12 @@ public class ProcessData {
 		if (size == 0) {
 			return startTime.toInstant(ZoneOffset.UTC).toEpochMilli();
 		} else {
-			System.out.println(size-2 + " " + map.get(size-2).toString());
-			
-			LocalDateTime time = LocalDateTime.parse(map.get(size-1).get(this.HEADER[0]));
-			return time.toInstant(ZoneOffset.UTC).toEpochMilli();
+			long milliseconds = Long.parseLong(map.get(size-1).get(this.HEADER[0]));
+			//LocalDateTime time =
+			 //   Instant.ofEpochMilli(milliseconds).atZone(ZoneId.systemDefault()).toLocalDateTime();
+			//LocalDateTime time = LocalDateTime.parse(map.get(size-1).get(this.HEADER[0]));
+			//return time.toInstant(ZoneOffset.UTC).toEpochMilli();
+			return milliseconds;
 		}
 	}
 
