@@ -36,6 +36,13 @@ public class ProcessData {
 		this.download = false;
 		this.it = new DiskList<>(Data.class, symbol + interval);
 	}
+	
+	protected ProcessData(String root, String symbol, String interval) {
+		this.symbol = symbol;
+		this.interval = interval;
+		this.download = false;
+		this.it = new DiskList<>(root, Data.class, symbol + interval);
+	}
 
 	public void donwload(String symbol, String interval, long time, String[] header, long pause) {
 		this.pause = pause;

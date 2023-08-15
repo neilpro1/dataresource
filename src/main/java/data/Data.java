@@ -28,8 +28,15 @@ public class Data {
 
 	private Map<String, ProcessData> processData;
 	private int numberProcess;
+	private String ROOT;
 
 	public Data() {
+		this.processData = new HashMap<>(MAX_REQUISITION);
+		this.ROOT = null;
+	}
+	
+	public Data(String root) {
+		this.ROOT = root;
 		this.processData = new HashMap<>(MAX_REQUISITION);
 	}
 
@@ -49,9 +56,13 @@ public class Data {
 				this.processData.get(key).setPause(this.getPause());
 			}
 
-			this.processData.put(symbol + interval, new ProcessData(symbol, interval));
-
+			if(this.ROOT == null)
+				this.processData.put(symbol + interval, new ProcessData(symbol, interval));
+			else
+				this.processData.put(symbol + interval, new ProcessData(this.ROOT, symbol, interval));
+			
 			new Thread(() -> {
+			
 				if (header == null) {
 					this.processData.get(symbol + interval).donwload(symbol, interval, time, this.getPause());
 				} else {
