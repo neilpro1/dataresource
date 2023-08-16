@@ -8,7 +8,7 @@ public class Test{
 		System.out.println("Data");
 		Data data = new Data();
 		data.download("BTCUSDT", "1d", 84600*1000, null);
-		data.download("ETHUSDT", "1d", 84600*1000, null);
+		//data.download("ETHUSDT", "1d", 84600*1000, null);
 		//System.out.println(data.getData("BTCUSDT", "1d"));
 
 	}

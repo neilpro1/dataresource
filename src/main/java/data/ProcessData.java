@@ -15,6 +15,7 @@ import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import com.binance.connector.client.SpotClient;
+import com.binance.connector.client.exceptions.BinanceConnectorException;
 import com.binance.connector.client.impl.SpotClientImpl;
 import struct.DiskMap;
 import struct.DiskList;
@@ -85,7 +86,21 @@ public class ProcessData {
 
 		while (loop) {
 
-			String result = client.createMarket().klines(parameters);
+			String result = "";
+			
+			while(true) {
+				try {
+					result = client.createMarket().klines(parameters);
+					break;
+				}catch(BinanceConnectorException b) {
+					try {
+						System.out.println("Connect to internet please...");
+						Thread.sleep(1000);
+					} catch (InterruptedException e) {
+					}
+				}
+			}
+			
 			Object[] values = JSON.decode(result, Object[].class);
 
 			for (Object value : values) {
