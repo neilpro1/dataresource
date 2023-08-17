@@ -71,9 +71,39 @@ public class Data {
 			}).start();;
 		}
 	}
+	
+	public void download(String symbol, String interval, long time, String header[], boolean print) {
+
+		
+		ProcessData data = processData.get(symbol + interval);
+		if (data == null) {
+			System.out.println("start to process data...");
+			this.numberProcess++;
+
+			for (String key : this.processData.keySet()) {
+				this.processData.get(key).setPause(this.getPause());
+			}
+
+			if(this.ROOT == null)
+				this.processData.put(symbol + interval, new ProcessData(symbol, interval));
+			else
+				this.processData.put(symbol + interval, new ProcessData(this.ROOT, symbol, interval));
+			
+			new Thread(() -> {
+			
+				if (header == null) {
+					this.processData.get(symbol + interval).donwload(symbol, interval, time, this.getPause(), print);
+				} else {
+					this.processData.get(symbol + interval).donwload(symbol, interval, time, header, this.getPause(), print);
+				}
+			}).start();;
+		}
+	}
 
 	public DiskList<Map<String, String>> getData(String symbol, String interval) {
-		return this.processData.get(symbol + interval).getData();
+		if(this.ROOT == null)
+			return (new ProcessData(symbol, interval)).getData();
+		return (new ProcessData(this.ROOT, symbol, interval)).getData();
 	}
 	
 	public boolean isDownload(String symbol, String interval) {

@@ -30,12 +30,14 @@ public class ProcessData {
 	private DiskList<Map<String, String>> it;
 	private long pause;
 	private boolean download;
+	private int numberOfFile;
 
 	protected ProcessData(String symbol, String interval) {
 		this.symbol = symbol;
 		this.interval = interval;
 		this.download = false;
 		this.it = new DiskList<>(Data.class, symbol + interval);
+		this.numberOfFile = this.it.size();
 	}
 	
 	protected ProcessData(String root, String symbol, String interval) {
@@ -43,6 +45,7 @@ public class ProcessData {
 		this.interval = interval;
 		this.download = false;
 		this.it = new DiskList<>(root, Data.class, symbol + interval);
+		this.numberOfFile = this.it.size();
 	}
 
 	public void donwload(String symbol, String interval, long time, String[] header, long pause) {
@@ -54,14 +57,111 @@ public class ProcessData {
 		this.pause = pause;
 		startSave(it, symbol, interval, time, null);
 	}
+	
+	public void donwload(String symbol, String interval, long time, String[] header, long pause, boolean print) {
+		this.pause = pause;
+		startSave(it, symbol, interval, time, header, print);
+	}
+
+	public void donwload(String symbol, String interval, long time, long pause, boolean print) {
+		this.pause = pause;
+		startSave(it, symbol, interval, time, null, print);
+	}
 
 	public void setPause(long time) {
 		this.pause = time;
 	}
 
 	public int getSize() {
-		return this.it.size();
+		return this.numberOfFile;
 	}
+	
+	private void startSave(DiskList<Map<String, String>> map, String pairs, String interval, long time,
+			String header[], boolean print) {
+		Map<String, Object> parameters = new LinkedHashMap<>();
+
+		SpotClient client = new SpotClientImpl(PrivateConfig.API_KEY, PrivateConfig.SECRET_KEY);
+
+		LocalDateTime startTime = LocalDateTime.of(2000, 1, 1, 0, 0);
+
+		parameters.put("symbol", pairs);
+		parameters.put("interval", interval);
+
+		long finish = LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli();
+		long start = restore(map, startTime, finish);
+
+		parameters.put("startTime", start);
+		parameters.put("endTime", finish);
+		parameters.put("limit", 1000);
+
+		boolean loop = true;
+		this.download = true;
+
+		while (loop) {
+
+			String result = "";
+			
+			while(true) {
+				try {
+					result = client.createMarket().klines(parameters);
+					break;
+				}catch(BinanceConnectorException b) {
+					try {
+						System.out.println("Connect to internet please...");
+						Thread.sleep(1000);
+					} catch (InterruptedException e) {
+					}
+				}
+			}
+			
+			Object[] values = JSON.decode(result, Object[].class);
+
+			for (Object value : values) {
+				Object[] datas = JSON.decode(String.valueOf(value), Object[].class);
+
+				Map<String, String> tmpMap = new HashMap<>();
+				start = (long) Double.parseDouble(String.valueOf(datas[0]));
+
+				tmpMap.put(HEADER[0], String.valueOf(start));
+				
+				if(print)
+					System.out.print(LocalDateTime.ofInstant(Instant.ofEpochMilli(start), ZoneId.systemDefault()) + " ");
+				for (int i = 1; i < datas.length; i++) {
+					double data = Double.parseDouble(String.valueOf(datas[i]));
+					tmpMap.put(HEADER[i], String.valueOf(data));
+					if(print)
+						System.out.print(data + " ");
+				}
+
+				Map<String, String> finalMap = new HashMap<String, String>();
+				if (header == null) {
+					finalMap = tmpMap;
+				} else {
+					for (String h : header) {
+						finalMap.put(h, tmpMap.get(h));
+					}
+				}
+
+				if(print)
+					System.out.println();
+				map.add(finalMap);
+				this.numberOfFile++;
+			}
+
+			start += time;
+			if (start >= finish) {
+				System.out.println(LocalDateTime.ofInstant(Instant.ofEpochMilli(start), ZoneId.systemDefault()));
+				break;
+			}
+
+			parameters.put("startTime", start);
+
+			this.sleep(this.pause);
+		}
+		
+		this.download = false;
+	}
+	
 	
 	private void startSave(DiskList<Map<String, String>> map, String pairs, String interval, long time,
 			String header[]) {
@@ -129,6 +229,7 @@ public class ProcessData {
 
 				System.out.println();
 				map.add(finalMap);
+				this.numberOfFile++;
 			}
 
 			start += time;
@@ -143,7 +244,6 @@ public class ProcessData {
 		}
 		
 		this.download = false;
-
 	}
 
 	public void free() {
@@ -164,12 +264,15 @@ public class ProcessData {
 		if (size == 0) {
 			return startTime.toInstant(ZoneOffset.UTC).toEpochMilli();
 		} else {
-			long milliseconds = Long.parseLong(map.get(size-1).get(this.HEADER[0]));
-			//LocalDateTime time =
-			 //   Instant.ofEpochMilli(milliseconds).atZone(ZoneId.systemDefault()).toLocalDateTime();
-			//LocalDateTime time = LocalDateTime.parse(map.get(size-1).get(this.HEADER[0]));
-			//return time.toInstant(ZoneOffset.UTC).toEpochMilli();
-			return milliseconds;
+			try {
+				long milliseconds = Long.parseLong(map.get(size-1).get(this.HEADER[0]));
+				return milliseconds;
+			}catch(Exception e) {
+				long milliseconds = Long.parseLong(map.get(size-2).get(this.HEADER[0]));
+				this.numberOfFile = size-2;
+				return milliseconds;
+			}
+			
 		}
 	}
 
