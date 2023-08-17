@@ -106,6 +106,12 @@ public class Data {
 		return (new ProcessData(this.ROOT, symbol, interval)).getData();
 	}
 	
+	public void free(String symbol, String interval) {
+		if(this.ROOT == null)
+			(new ProcessData(symbol, interval)).free();
+		(new ProcessData(this.ROOT, symbol, interval)).free();
+	}
+	
 	public boolean isDownload(String symbol, String interval) {
 		return this.processData.get(symbol + interval).isDownload();
 	}
