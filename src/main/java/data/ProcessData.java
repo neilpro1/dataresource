@@ -5,7 +5,10 @@ import java.util.Map;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -26,11 +29,16 @@ public class ProcessData {
 	private final String HEADER[] = { "open time", "open price", "high price", "low price", "close price", "volume",
 			"close time", "asset volume", "number of trades", "taker buy base asset volume", "taker buy quote volume",
 			"ignore" };
+	
 	private String symbol, interval;
 	private DiskList<Map<String, String>> it;
 	private long pause;
 	private boolean download;
 	private int numberOfFile;
+	
+	private double numberOfRequisitionPerMin;
+	private long time;
+
 
 	protected ProcessData(String symbol, String interval) {
 		this.symbol = symbol;
@@ -38,6 +46,9 @@ public class ProcessData {
 		this.download = false;
 		this.it = new DiskList<>(Data.class, symbol + interval);
 		this.numberOfFile = this.it.size();
+		this.numberOfRequisitionPerMin = 0;
+		this.time = 0L;
+		
 	}
 	
 	protected ProcessData(String root, String symbol, String interval) {
@@ -46,6 +57,9 @@ public class ProcessData {
 		this.download = false;
 		this.it = new DiskList<>(root, Data.class, symbol + interval);
 		this.numberOfFile = this.it.size();
+		this.numberOfRequisitionPerMin = 0;
+		this.time = 0L;
+		
 	}
 
 	public void donwload(String symbol, String interval, long time, String[] header, long pause) {
@@ -97,6 +111,8 @@ public class ProcessData {
 		boolean loop = true;
 		this.download = true;
 
+		int counting = 0;
+		this.counting();
 		while (loop) {
 
 			String result = "";
@@ -104,6 +120,8 @@ public class ProcessData {
 			while(true) {
 				try {
 					result = client.createMarket().klines(parameters);
+					counting++;
+					this.numberOfRequisitionPerMin = counting / this.time;
 					break;
 				}catch(BinanceConnectorException b) {
 					try {
@@ -156,7 +174,6 @@ public class ProcessData {
 
 			parameters.put("startTime", start);
 
-			this.sleep(this.pause);
 		}
 		
 		this.download = false;
@@ -184,6 +201,8 @@ public class ProcessData {
 		boolean loop = true;
 		this.download = true;
 
+		this.counting();
+		int counting = 0;
 		while (loop) {
 
 			String result = "";
@@ -191,6 +210,14 @@ public class ProcessData {
 			while(true) {
 				try {
 					result = client.createMarket().klines(parameters);
+					counting++;
+					this.numberOfRequisitionPerMin = (this.time / counting);
+					if(this.time < 60 && counting == 1200)
+						try {
+							Thread.sleep((60-this.time)*1000);
+						}catch(Exception e) {}
+					if(counting == 1200)
+						counting = 0;
 					break;
 				}catch(BinanceConnectorException b) {
 					try {
@@ -240,7 +267,6 @@ public class ProcessData {
 
 			parameters.put("startTime", start);
 
-			this.sleep(this.pause);
 		}
 		
 		this.download = false;
@@ -268,12 +294,31 @@ public class ProcessData {
 				long milliseconds = Long.parseLong(map.get(size-1).get(this.HEADER[0]));
 				return milliseconds;
 			}catch(Exception e) {
+				map.delete(size-1);
 				long milliseconds = Long.parseLong(map.get(size-2).get(this.HEADER[0]));
 				this.numberOfFile = size-2;
 				return milliseconds;
 			}
-			
 		}
+	}
+	
+	public double getNumberOfAcessPerMin() {
+		return this.numberOfRequisitionPerMin * 60;
+	}
+	
+	public long getTime() {
+		return this.time;
+	}
+	
+	private void counting() {
+		new Thread(() -> {
+			while(true) {
+				try {
+					Thread.sleep(1000);
+					this.time++;
+ 				}catch(Exception e) {}
+			}
+		}).start(); 
 	}
 
 	private void sleep(long time) {
@@ -282,4 +327,5 @@ public class ProcessData {
 		} catch (Exception e) {
 		}
 	}
+	
 }

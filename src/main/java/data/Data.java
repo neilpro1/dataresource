@@ -45,8 +45,6 @@ public class Data {
 	}
 
 	public void download(String symbol, String interval, long time, String header[]) {
-
-	
 		ProcessData data = processData.get(symbol + interval);
 		if (data == null) {
 			System.out.println("start to process data...");
@@ -73,8 +71,6 @@ public class Data {
 	}
 	
 	public void download(String symbol, String interval, long time, String header[], boolean print) {
-
-		
 		ProcessData data = processData.get(symbol + interval);
 		if (data == null) {
 			System.out.println("start to process data...");
@@ -98,6 +94,15 @@ public class Data {
 				}
 			}).start();;
 		}
+	}
+	
+	public double getNumberOfAcessPerMin(String symbol, String interval) {
+		return this.processData.get(symbol + interval).getNumberOfAcessPerMin();
+	}
+	
+	public long getTime(String symbol, String interval) {
+		return this.processData.get(symbol + interval).getTime();
+
 	}
 
 	public DiskList<Map<String, String>> getData(String symbol, String interval) {
